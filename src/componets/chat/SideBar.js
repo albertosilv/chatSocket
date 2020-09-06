@@ -4,14 +4,14 @@ import {AiOutlineBars as FAMenu} from 'react-icons/ai'
 import {BiSearch as FASearch} from 'react-icons/bi'
 import {BsEjectFill as MdEject} from 'react-icons/bs'
 
-export default class SideBar extends Component{
-		
-	render(){
-		const { chats, activeChat, user, setActiveChat, logout} = this.props
+export default class SideBar extends Component {
+
+	render() {
+		const { chats, activeChat, user, setActiveChat, logout } = this.props
 		return (
 			<div id="side-bar">
 					<div className="heading">
-						<div className="app-name">Our Cool Chat <FAChevronDown /></div>
+						<div className="app-name">Zanjo Chat <FAChevronDown /></div>
 						<div className="menu">
 							<FAMenu />
 						</div>
@@ -23,8 +23,8 @@ export default class SideBar extends Component{
 					</div>
 					<div 
 						className="users" 
-						ref='users' 
-						onClick={(e)=>{ (e.target === this.refs.user) && setActiveChat(null) }}>
+						ref="users"
+						onClick={(e)=>{ (e.target == this.refs.users) && setActiveChat(null) }}>
 						
 						{
 						chats.map((chat)=>{
@@ -34,7 +34,6 @@ export default class SideBar extends Component{
 									return name !== this.props.name
 								}) || { name:"Community" }
 								const classNames = (activeChat && activeChat.id === chat.id) ? 'active' : ''
-								
 								return(
 								<div 
 									key={chat.id} 
@@ -62,8 +61,7 @@ export default class SideBar extends Component{
 							<MdEject/>	
 						</div>
 					</div>
-			</div>
+				</div>
 		);
-	
 	}
 }

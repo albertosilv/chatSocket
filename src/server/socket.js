@@ -7,6 +7,8 @@ const {
 } = require('../event')
 
 const { createUser, createChat, createMessage } = require('../Factories')
+let communityChat = createChat()
+
 module.exports = function (socket) {
     console.log(socket.id)
     socket.on(VERIFY_USER, (nickname, callback) => {
@@ -23,6 +25,21 @@ module.exports = function (socket) {
         socket.user = user
         console.log(connectedUsers)
         io.emit(USER_CONNECTED, connectedUsers)
+    })
+    socket.on('disconnet',()=>{
+        if("user" in socket){
+            connectedUsers = removeUser(connectedUsers,socket.user.name)
+            io.emit(USER_DISCONNECTED,connectedUsers)
+            console.log(connectedUsers)
+        }
+    })
+    socket.on(LOGOUT,()=>{
+        connectedUsers =removeUser(connectedUsers,socket.user.name)
+        io.emit(USER_DISCONNECTED,connectedUsers)
+        console.log(connectedUsers)
+    })
+    socket.on(COMMUNITY_CHAT,(callback)=>{
+        callback(communityChat)
     })
 }
 function addUser(userList,user){
