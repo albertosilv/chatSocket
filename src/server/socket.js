@@ -3,26 +3,29 @@ let connectedUsers = {}
 const {
     COMMUNITY_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
     USER_CONNECTED, USER_DISCONNECTED, TYPING,
-    STOP_TYPING, VERIFY_USER, LOGOUT
+    STOP_TYPING, VERIFY_USER, LOGOUT,PRIVATE_MESSAGE
 } = require('../event')
 
 const { createUser, createChat, createMessage } = require('../Factories')
 let communityChat = createChat()
 
 module.exports = function (socket) {
+    let sendMessageToChatFromUser
     console.log(socket.id)
     socket.on(VERIFY_USER, (nickname, callback) => {
         if (isUser(connectedUsers,nickname)) {
             callback({ isUser: true, user: null })
         }
         else {
-            callback({ isUser: false, user: createUser({ name: nickname }) })
+            callback({ isUser: false, user: createUser({ name: nickname ,socketId:socket.id}) })
         }
     })
 
     socket.on(USER_CONNECTED,(user)=>{
+        user.socket=socket.id
         connectedUsers = addUser(connectedUsers,user)
         socket.user = user
+        sendMessageToChatFromUser = sendMessageToChat(user.name)
         console.log(connectedUsers)
         io.emit(USER_CONNECTED, connectedUsers)
     })
@@ -38,9 +41,23 @@ module.exports = function (socket) {
         io.emit(USER_DISCONNECTED,connectedUsers)
         console.log(connectedUsers)
     })
-    socket.on(COMMUNITY_CHAT,(callback)=>{
-        callback(communityChat)
+    socket.on(MESSAGE_SENT, ({chatId, message})=>{
+		sendMessageToChatFromUser(chatId, message)
     })
+    socket.on(PRIVATE_MESSAGE,({reciever,sender})=>{
+       if(reciever in connectedUsers){
+           const newChat = createChat({name:`${reciever}&${sender}`,users:[reciever,sender]})
+           const recieverSocket = connectedUsers[reciever].socket
+           socket.to(recieverSocket).emit(PRIVATE_MESSAGE,newChat)
+           socket.emit(PRIVATE_MESSAGE,newChat)
+       }
+    })
+}
+
+function sendMessageToChat(sender){
+	return (chatId, message)=>{
+		io.emit(`${MESSAGE_RECIEVED}-${chatId}`, createMessage({message, sender}))
+	}
 }
 function addUser(userList,user){
     let newList = Object.assign({},userList)

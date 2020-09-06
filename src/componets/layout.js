@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { USER_CONNECTED, USER_DISCONNECTD, LOGOUT } from '../event'
+import { USER_CONNECTED, USER_DISCONNECTD, LOGOUT, PRIVATE_MESSAGE } from '../event'
 import io from 'socket.io-client'
 import LoginForm from './LoginForm'
 import ChatContainer from './chat/chatContainer'
@@ -23,6 +23,7 @@ export default class Layout extends Component {
             console.log('Connected')
         })
     }
+    
     setUser = (user) => {
         const { socket } = this.state
         socket.emit(USER_CONNECTED,user)

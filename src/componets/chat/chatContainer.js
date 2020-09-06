@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import SideBar from './SideBar'
-import { COMMUNITY_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED, TYPING } from '../../event'
+import { COMMUNITY_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED, PRIVATE_MESSAGE } from '../../event'
 import ChatHeading from './ChatHeading'
 import Messages from '../messages/Messages'
 import MessageInput from '../messages/MessageInput'
@@ -18,24 +18,31 @@ export default class ChatContainer extends Component {
 
 	componentDidMount() {
 		const { socket } = this.props
-		socket.emit(COMMUNITY_CHAT, this.resetChat)
+		this.initSocket(socket)
+		
 	}
-
+	initSocket(socket){
+		const {user} = this.props
+		socket.on(PRIVATE_MESSAGE,this.addChat)
+	}
+	sendOpenPrivateMessage =  (reciever)=>{
+        const{socket,user} = this.props
+        socket.emit(PRIVATE_MESSAGE,{reciever,sender:user.name})
+    }
 	resetChat = (chat)=>{
 		return this.addChat(chat, true)
 	}
 
-	addChat = (chat, reset)=>{
+	addChat = (chat, reset = false)=>{
+		console.log(chat)
 		const { socket } = this.props
 		const { chats } = this.state
 
 		const newChats = reset ? [chat] : [...chats, chat]
-		this.setState({chats:newChats})
+		this.setState({chats:newChats,activeChat:reset? chat: this.state.activeChat})
 
 		const messageEvent = `${MESSAGE_RECIEVED}-${chat.id}`
-		const typingEvent = `${TYPING}-${chat.id}`
 
-		socket.on(typingEvent, this.updateTypingInChat(chat.id))
 		socket.on(messageEvent, this.addMessageToChat(chat.id))
 	}
 
@@ -52,18 +59,11 @@ export default class ChatContainer extends Component {
 		}
 	}
 
-	updateTypingInChat = (chatId) =>{
-	}
-
 	sendMessage = (chatId, message)=>{
 		const { socket } = this.props
 		socket.emit(MESSAGE_SENT, {chatId, message} )
 	}
 
-	sendTyping = (chatId, isTyping)=>{
-		const { socket } = this.props
-		socket.emit(TYPING, {chatId, isTyping})
-	}
 
 	setActiveChat = (activeChat)=>{
 		this.setState({activeChat})
@@ -79,6 +79,7 @@ export default class ChatContainer extends Component {
 					user={user}
 					activeChat={activeChat}
 					setActiveChat={this.setActiveChat}
+					onSendPrivateMessage={this.sendOpenPrivateMessage}
 					/>
 				<div className="chat-room-container">
 					{
@@ -89,17 +90,11 @@ export default class ChatContainer extends Component {
 								<Messages 
 									messages={activeChat.messages}
 									user={user}
-									typingUsers={activeChat.typingUsers}
 									/>
 								<MessageInput 
 									sendMessage={
 										(message)=>{
 											this.sendMessage(activeChat.id, message)
-										}
-									}
-									sendTyping={
-										(isTyping)=>{
-											this.sendTyping(activeChat.id, isTyping)
 										}
 									}
 									/>

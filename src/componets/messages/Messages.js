@@ -3,9 +3,19 @@ import React, { Component } from 'react';
 export default class Messages extends Component {
 	constructor(props) {
 	  super(props);
+	  this.scrollDowm = this.scrollDowm.bind(this)
 		
 	}
-	
+	scrollDowm(){
+		const {container} =  this.refs
+		container.scrollTop = container.scrollHeight
+	}
+	componentDidMount (){
+		this.scrollDowm()
+	}
+	componentDidUpdate(prevProps,prevState){
+		this.scrollDowm()
+	}
 	render() {
 		const { messages, user, typingUsers } = this.props
 		return (
@@ -27,15 +37,6 @@ export default class Messages extends Component {
 								</div>
 
 								)
-						})
-					}
-					{
-						typingUsers.map((name)=>{
-							return (
-								<div key={name} className="typing-user">
-									{`${name} is typing . . .`}
-								</div>
-							)
 						})
 					}
 				</div>
